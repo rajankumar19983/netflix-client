@@ -27,7 +27,7 @@ html {
 
 .hero-bg {
   background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.3)),
-    url("hero.jpg");
+    url("/public/hero.jpg");
 }
 
 .separator {
