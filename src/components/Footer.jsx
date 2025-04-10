@@ -20,7 +20,7 @@ const Footer = () => {
           <li className={listStyle}>FAQ</li>
         </ul>
         <div className="text-[12px] leading-tight opacity-50 text-center max-w-[800px] mb-5 md:text-[14px] md:mb-[30px]">
-          CINETUBE, your ultimate destination for all things cinematic! Immerse
+          NetFlix, your ultimate destination for all things cinematic! Immerse
           yourself in the world of movies and TV series like never before.
           Discover the latest trailers, delve into comprehensive details, and
           stay up-to-date with the entertainment industry's hottest releases.
