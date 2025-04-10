@@ -40,7 +40,7 @@ const Details = () => {
     }
 
     // return () => {
-    //   console.log("Closing listeners in Details.jsx");
+
     //   socket.off("selectMedia");
     // };
   }, [id]);

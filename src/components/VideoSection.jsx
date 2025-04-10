@@ -32,7 +32,6 @@ const VideoSection = ({ data, loading }) => {
     }
 
     // return () => {
-    //   console.log("Closing listeners in VideoSection.jsx");
     //   socket.off("selectVideo");
     // };
   };

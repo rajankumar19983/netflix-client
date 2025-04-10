@@ -23,14 +23,25 @@ import {
   fetchNotifications,
 } from "./store/notification-slice";
 import { addParticipant, removeParticipant } from "./store/watchParty-slice";
+import {
+  incomingCall,
+  callRejected,
+  callAccepted,
+  callEndedExternally,
+  receivedIceCandidate,
+} from "./store/call-Slice.js";
+import CallModal from "./components/CallModal.jsx";
+import VideoCallModal from "./components/VideoCallModal.jsx";
 
 function App() {
   const { isLoggedIn, isLoading, authChecked, user } = useSelector(
     (state) => state.user
   );
+  const callInfo = useSelector((state) => state.call.callInfo);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  // rejoin watchparty on re-load
   useEffect(() => {
     if (user?._id) {
       const savedCode = localStorage.getItem("watchPartyCode");
@@ -44,6 +55,7 @@ function App() {
     }
   }, [user]);
 
+  // handling socket events for app, friends, watchparties, calls
   useEffect(() => {
     if (user?._id) {
       dispatch(fetchNotifications());
@@ -64,9 +76,12 @@ function App() {
         dispatch(addParticipant(userId));
       });
       socket.on("userLeft", ({ userId }) => {
-        console.log("userLeft event received");
         dispatch(removeParticipant(userId));
       });
+      socket.on("incomingCall", (data) => dispatch(incomingCall(data)));
+      socket.on("callRejected", (data) => dispatch(callRejected(data)));
+      socket.on("callAccepted", (data) => dispatch(callAccepted(data)));
+
       socket.on("disconnect", () => {
         toast.error("Disconnected from server. Trying to reconnect...");
       });
@@ -76,6 +91,10 @@ function App() {
       socket.off("requestaccepted");
       socket.off("mediaSelected");
       socket.off("disconnect");
+      // socket.off("incomingCall");
+      // socket.off("callRejected");
+      // socket.off("callAccepted");
+      // socket.off("callEnded");
     };
   }, [user?._id]);
 
@@ -150,15 +169,27 @@ function App() {
               />
               <Route
                 path="/:mediaType/:id"
-                element={<Details />}
+                element={
+                  <PrivateRoute>
+                    <Details />
+                  </PrivateRoute>
+                }
               />
               <Route
                 path="/search/:query"
-                element={<SearchResults />}
+                element={
+                  <PrivateRoute>
+                    <SearchResults />
+                  </PrivateRoute>
+                }
               />
               <Route
                 path="/explore/:mediaType"
-                element={<Explore />}
+                element={
+                  <PrivateRoute>
+                    <Explore />
+                  </PrivateRoute>
+                }
               />
               <Route
                 path="*"
@@ -167,6 +198,8 @@ function App() {
             </Routes>
             <Footer />
             <Toaster reverseOrder={true} />
+            <CallModal />
+            {callInfo?.status === "in-call" && <VideoCallModal />}
           </main>
         )
         // : (

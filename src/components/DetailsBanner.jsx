@@ -48,11 +48,10 @@ const DetailsBanner = ({ video, crew }) => {
   useEffect(() => {
     socket.on("videoSelected", ({ videoId }) => {
       setShow(true);
-      setVideoId(videoId); // Update video popup
+      setVideoId(videoId);
     });
 
     // return () => {
-    //   console.log("Closing listeners in DetailsBanner.jsx");
     //   socket.off("videoSelected");
     // };
   }, []);

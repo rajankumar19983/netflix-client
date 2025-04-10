@@ -9,31 +9,40 @@ import {
   BsTelephoneX,
   BsTelephoneFill,
 } from "react-icons/bs";
-import ringtone from "../assets/ringtone.mp3";
-import callertune from "../assets/callertune.mp3";
-import toast from "react-hot-toast";
+import {
+  startCall,
+  acceptCall,
+  rejectCall,
+  endCall,
+} from "../store/call-Slice.js";
+import { useDispatch, useSelector } from "react-redux";
 
-const ChatBox = ({ userId, username, activeChat, closeChat }) => {
+const ChatBox = ({ currentUser, activeChat, closeChat }) => {
   const [messages, setMessages] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [messageInput, setMessageInput] = useState("");
-  const [isCalling, setIsCalling] = useState(false);
-  const [currentCallId, setCurrentCallId] = useState(null);
-  const [incomingCall, setIncomingCall] = useState(null);
-  const [callStatus, setCallStatus] = useState(""); // "calling", "rejected", "unanswered"
-  const ringtoneRef = useRef(new Audio(ringtone));
-  const callertuneRef = useRef(new Audio(callertune));
-  let callTimeout = useRef(null);
   const chatBoxRef = useRef();
   const scrollToBottomRef = useRef();
+
+  const callInfo = useSelector((state) => state.call.callInfo);
+  const caller = callInfo?.caller;
+  const receiver = callInfo?.receiver;
+  const status = callInfo?.status;
+  const isIncoming = status === "incoming";
+  const isOngoing = status === "in-call";
+  const isCalling = status === "calling";
+
+  const displayName = isIncoming ? caller?.username : receiver?.username;
+
+  const dispatch = useDispatch();
 
   // load messages
   const loadMessages = async (currentPage) => {
     if (!hasMore) return;
     try {
       const res = await axios.get(
-        `/chat/history/${userId}/${activeChat._id}?page=${currentPage}`,
+        `/chat/history/${currentUser._id}/${activeChat._id}?page=${currentPage}`,
         {
           headers: {
             Authorization: localStorage.getItem("token"),
@@ -91,10 +100,10 @@ const ChatBox = ({ userId, username, activeChat, closeChat }) => {
         return [...prev, data];
       });
       // ✅ Emit "markAsRead" immediately if the receiver is seeing the chat
-      if (data.receiverId === userId && activeChat) {
+      if (data.receiverId === currentUser._id && activeChat) {
         socket.emit("markAsRead", {
           senderId: activeChat._id,
-          receiverId: userId,
+          receiverId: currentUser._id,
         });
       }
     });
@@ -108,14 +117,13 @@ const ChatBox = ({ userId, username, activeChat, closeChat }) => {
     if (!activeChat || messages.length === 0) return; // ✅ Early return for efficiency
 
     const unreadMessages = messages.filter(
-      (msg) => msg.receiverId === userId && msg.status === "delivered"
+      (msg) => msg.receiverId === currentUser._id && msg.status === "delivered"
     );
 
     if (unreadMessages.length > 0) {
-      console.log("📢 Emitting markAsRead event..."); // ✅ Debugging output
       socket.emit("markAsRead", {
         senderId: activeChat._id,
-        receiverId: userId,
+        receiverId: currentUser._id,
       });
     }
   }, [messages, activeChat]);
@@ -136,7 +144,7 @@ const ChatBox = ({ userId, username, activeChat, closeChat }) => {
   const sendMessage = () => {
     if (messageInput.trim() && activeChat) {
       const messageData = {
-        senderId: userId,
+        senderId: currentUser._id,
         receiverId: activeChat._id,
         message: messageInput,
       };
@@ -147,130 +155,37 @@ const ChatBox = ({ userId, username, activeChat, closeChat }) => {
       setTimeout(() => scrollToBottom(), 0); // Scroll after sending
     }
   };
-  // Handle incoming call
-  useEffect(() => {
-    socket.on("incomingCall", ({ callerId, username, callId }) => {
-      setIncomingCall({ callerId, username, callId });
-      setCallStatus("");
-      // playing ringtone for receiver
-      ringtoneRef.current.loop = true;
-      ringtoneRef.current.play();
 
-      callTimeout.current = setTimeout(() => {
-        rejectCall();
-      }, 30000);
-    });
-    socket.on("callRejected", ({ callId }) => {
-      stopSounds();
-      setIsCalling(false);
-      setIncomingCall(null);
-      if (callStatus === "calling") setCallStatus("rejected");
-      toast.error(`${activeChat.username} rejected your call!`);
-    });
-    socket.on("callAccepted", ({ receiverId, callId }) => {
-      stopSounds();
-      setIsCalling(false);
-      setCallStatus("");
-      console.log("Call accepted by:", receiverId);
-      // Open video call modal here (WebRTC integration)
-    });
-    socket.on("callEnded", ({ callId }) => {
-      stopSounds();
-      setIsCalling(false);
-      setCallStatus("ended");
-      setIncomingCall(null);
-    });
-
-    return () => {
-      socket.off("incomingCall");
-      socket.off("callRejected");
-      socket.off("callAccepted");
-      socket.off("callEnded");
-    };
-  }, []);
-
-  const stopSounds = () => {
-    ringtoneRef.current.pause();
-    ringtoneRef.current.currentTime = 0;
-    callertuneRef.current.pause();
-    callertuneRef.current.currentTime = 0;
-    clearTimeout(callTimeout.current);
-  };
-
-  // Handle calling a user
-  const startCall = () => {
-    if (isCalling) return; //prevent multiple calls
-    setIsCalling(true);
-    setCallStatus("calling");
-    const callId = `${userId}-${activeChat._id}-${Date.now()}`;
-    socket.emit("callUser", {
-      callerId: userId,
-      username,
-      receiverId: activeChat._id,
-      callId,
-    });
-    setCurrentCallId(callId);
-
-    // playing caller tune for caller
-    callertuneRef.current.loop = true;
-    callertuneRef.current.play();
-
-    // Auto-end call if not answered in 30 sec
-    callTimeout.current = setTimeout(() => {
-      endCall(callId);
-      setCallStatus("unanswered");
-      toast.error(`${activeChat.username} did not answer!`);
-    }, 30000);
-  };
-
-  // Accept an incoming call
-  const acceptCall = () => {
-    if (!incomingCall) return;
-    socket.emit("acceptCall", {
-      callerId: incomingCall.callerId,
-      receiverId: userId,
-      callId: incomingCall.callId,
-    });
-    setIncomingCall(null);
-    stopSounds();
-    // Open video call modal here (WebRTC integration)
-  };
-
-  // Reject an incoming call
-  const rejectCall = () => {
-    if (!incomingCall) return;
-    socket.emit("rejectCall", {
-      callerId: incomingCall.callerId,
-      receiverId: userId,
-      callId: incomingCall.callId,
-    });
-    stopSounds();
-    setIncomingCall(null);
-  };
-
-  // End the call
-  const endCall = () => {
-    socket.emit("endCall", {
-      callId: currentCallId,
-    });
-    stopSounds();
-    setIsCalling(false);
-    setIncomingCall(null);
+  const makeCall = () => {
+    dispatch(
+      startCall({
+        caller: {
+          id: currentUser._id,
+          username: currentUser.username,
+          avatar: currentUser.image,
+        },
+        receiver: {
+          id: activeChat._id,
+          username: activeChat.username,
+          avatar: activeChat.image,
+        },
+      })
+    );
   };
 
   return (
-    <div className="fixed bottom-4 right-4 w-72 bg-white shadow-lg rounded border z-[100]">
+    <div className="bottom-4 right-4 w-72 bg-white shadow-lg rounded border z-[100]">
       <div className="bg-blue-500 text-white flex justify-between border-b py-2 px-4">
         <h3 className="font-semibold">{activeChat.username}</h3>
-        <button onClick={startCall}>{<BsCameraVideoFill />}</button>
-        <button onClick={() => closeChat()}>✖</button>
+        <button onClick={makeCall}>{<BsCameraVideoFill />}</button>
+        <button onClick={closeChat}>✖</button>
       </div>
       {/* Outgoing call UI */}
       {isCalling && (
-        <div className="absolute top-0 left-0 w-full bg-blue-300 p-4 flex flex-col gap-2 items-center shadow-lg">
-          <p>Calling {activeChat.username}...</p>
+        <div className="absolute top-0 left-0 w-72 bg-blue-300 p-4 flex flex-col gap-2 items-center shadow-lg">
+          <p>Calling {displayName}...</p>
           <button
-            onClick={endCall}
+            onClick={() => dispatch(endCall())}
             className="text-red-500 border-2 border-red-500 rounded-full p-2 hover:bg-red-500 hover:text-white hover:animate-pulse"
           >
             <BsTelephoneX size={24} />
@@ -279,18 +194,18 @@ const ChatBox = ({ userId, username, activeChat, closeChat }) => {
       )}
 
       {/* Incoming call UI */}
-      {incomingCall && (
+      {isIncoming && (
         <div className="absolute top-0 left-0 w-full bg-blue-300 p-4 flex flex-col items-center shadow-lg">
-          <p>{incomingCall.username} is calling...</p>
+          <p>{displayName} is calling...</p>
           <div className="flex gap-2 mt-2">
             <button
-              onClick={acceptCall}
+              onClick={() => dispatch(acceptCall())}
               className="text-green-500 border-2 border-green-500 rounded-full p-2 hover:bg-green-500 hover:text-white hover:animate-pulse"
             >
               <BsTelephoneFill size={24} />
             </button>
             <button
-              onClick={rejectCall}
+              onClick={() => dispatch(rejectCall())}
               className="text-red-500 border-2 border-red-500 rounded-full p-2 hover:bg-red-500 hover:text-white hover:animate-pulse"
             >
               <BsTelephoneX size={24} />
@@ -308,11 +223,11 @@ const ChatBox = ({ userId, username, activeChat, closeChat }) => {
           <div
             key={msg._id}
             className={`message${
-              msg.senderId === userId ? "sent" : "received"
+              msg.senderId === currentUser._id ? "sent" : "received"
             }`}
           >
             <p>{msg.message}</p>
-            {msg.senderId === userId && (
+            {msg.senderId === currentUser._id && (
               <div className="text-end">
                 <span className="inline-flex items-center ml-1 text-[16px]">
                   {getMessageStatusIcon(msg.status)}

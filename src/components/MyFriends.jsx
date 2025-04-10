@@ -9,7 +9,7 @@ const MyFriends = () => {
   const { user } = useSelector((state) => state.user);
   const { friends } = useSelector((state) => state.friend);
   const [friendsData, setFriendsData] = useState([]);
-  const [activeChat, setActiveChat] = useState(null);
+  const [activeChat, setActiveChat] = useState([]);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -40,8 +40,10 @@ const MyFriends = () => {
     }
   };
 
-  const handleCloseChat = () => {
-    setActiveChat(null);
+  const handleCloseChat = (usedIdToClose) => {
+    setActiveChat((prev) =>
+      prev.filter((chat) => chat.userId !== usedIdToClose)
+    );
   };
 
   return (
@@ -75,7 +77,13 @@ const MyFriends = () => {
           <div className="flex gap-5">
             <button
               className="text-blue-500"
-              onClick={() => setActiveChat(ele)}
+              onClick={() =>
+                setActiveChat((prev) => {
+                  if (prev.some((chat) => chat.userId === ele.userId))
+                    return prev;
+                  return [...prev, ele];
+                })
+              }
             >
               <FaCommentDots size={20} />
             </button>
@@ -88,14 +96,16 @@ const MyFriends = () => {
           </div>
         </div>
       ))}
-      {activeChat && (
-        <ChatBox
-          userId={user?._id}
-          username={user?.username}
-          activeChat={activeChat}
-          closeChat={handleCloseChat}
-        />
-      )}
+      <div className="flex gap-4 flex-wrap fixed bottom-4 right-4 z-50">
+        {activeChat.map((chat) => (
+          <ChatBox
+            key={chat.userId}
+            currentUser={user}
+            activeChat={chat}
+            closeChat={() => handleCloseChat(chat.userId)}
+          />
+        ))}
+      </div>
     </div>
   );
 };
