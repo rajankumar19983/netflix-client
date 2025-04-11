@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { use, useState } from "react";
 import { FaLink, FaSignInAlt, FaVideo } from "react-icons/fa";
 import socket from "../utils/socketInstance.js";
 import { toast } from "react-hot-toast";
 import { useSelector } from "react-redux";
+import { confirm } from "./confirm.jsx";
 
 const WatchWithFriends = () => {
   const { user } = useSelector((state) => state.user);
@@ -33,15 +34,20 @@ const WatchWithFriends = () => {
     toast.success("Joined the watch party");
   };
 
-  const handleLeaveParty = () => {
-    socket.emit("leaveWatchParty", {
-      roomId: localStorage.getItem("watchPartyCode"),
-      userId: user?._id,
-    });
-    localStorage.removeItem("watchPartyCode");
-    sessionStorage.removeItem("watchPartyParticipants");
-    setPartyCode("");
-    toast.success("Left the watch party");
+  const handleLeaveParty = async () => {
+    const userConfirm = await confirm(
+      "Are you sure you want to leave the watch party?"
+    );
+    if (userConfirm) {
+      socket.emit("leaveWatchParty", {
+        roomId: localStorage.getItem("watchPartyCode"),
+        userId: user?._id,
+      });
+      localStorage.removeItem("watchPartyCode");
+      sessionStorage.removeItem("watchPartyParticipants");
+      setPartyCode("");
+      toast.success("Left the watch party");
+    }
   };
 
   const handleCloseParty = () => {
@@ -68,19 +74,19 @@ const WatchWithFriends = () => {
         {createdCode && (
           <div>
             <div className="mt-2 p-2 bg-gray-100 rounded text-center">
-              Your Party Code: <strong>{createdCode}</strong>
+              Watch Party Code: <strong>{createdCode}</strong>
               <button
                 className="ml-2 text-red-500 underline"
                 onClick={handleLeaveParty}
               >
                 Leave Party
               </button>
-              <button
+              {/* <button
                 className="ml-2 text-white bg-red-500 px-3 py-1 rounded"
                 onClick={handleCloseParty}
               >
                 Close Watch Party
-              </button>
+              </button> */}
             </div>
             {/*<div>No of participants: {participants.length}</div>*/}
           </div>
@@ -103,7 +109,7 @@ const WatchWithFriends = () => {
             <FaSignInAlt /> Join Party
           </button>
         </div>
-        <div>
+        {/* <div>
           <h3 className="text-lg font-semibold mt-4">Start a Video Call</h3>
           <button
             className="w-full flex items-center justify-center gap-2 p-2 bg-red-500 text-white rounded"
@@ -111,7 +117,7 @@ const WatchWithFriends = () => {
           >
             <FaVideo /> Start a Video call
           </button>
-        </div>
+        </div> */}
       </div>
     </div>
   );

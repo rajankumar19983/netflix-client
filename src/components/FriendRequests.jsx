@@ -5,6 +5,7 @@ import {
   rejectFriendRequest,
 } from "../store/friend-slice";
 import axios from "../config/axios";
+import { confirm } from "./confirm";
 
 const FriendRequests = () => {
   const { friendRequests } = useSelector((state) => state.friend);
@@ -40,11 +41,16 @@ const FriendRequests = () => {
   };
 
   const handleReject = async (id) => {
-    try {
-      await dispatch(rejectFriendRequest({ id }));
-      setReceivedData((prev) => prev.filter((ele) => ele.userId !== id));
-    } catch (err) {
-      console.error("Failed to reject:", err);
+    const userConfirm = await confirm(
+      "Are you sure you want to reject this request?"
+    );
+    if (userConfirm) {
+      try {
+        await dispatch(rejectFriendRequest({ id }));
+        setReceivedData((prev) => prev.filter((ele) => ele.userId !== id));
+      } catch (err) {
+        console.error("Failed to reject:", err);
+      }
     }
   };
 

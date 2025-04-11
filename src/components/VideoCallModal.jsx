@@ -7,6 +7,7 @@ import {
   emitIceCandidate,
   callEndedExternally,
 } from "../store/call-Slice.js";
+import toast from "react-hot-toast";
 
 const VideoCallModal = () => {
   const { callInfo } = useSelector((state) => state.call);
@@ -216,48 +217,52 @@ const VideoCallModal = () => {
     }
   };
 
-  const handleScreenShare = async () => {
-    if (!isScreenSharing) {
-      try {
-        const screenStream = await navigator.mediaDevices.getDisplayMedia({
-          video: true,
-          audio: true,
-        });
+  // const handleScreenShare = async () => {
+  //   if (!isScreenSharing) {
+  //     try {
+  //       const screenStream = await navigator.mediaDevices.getDisplayMedia({
+  //         video: true,
+  //         audio: true,
+  //       });
 
-        const screenTrack = screenStream.getVideoTracks()[0];
+  //       const screenTrack = screenStream.getVideoTracks()[0];
 
-        screenTrack.onended = () => handleStopScreenShare();
+  //       screenTrack.onended = () => handleStopScreenShare();
 
-        screenStream.getTracks().forEach((track) => {
-          peerConnectionRef.current?.addTrack(track, screenStream);
-        });
+  //       screenStream.getTracks().forEach((track) => {
+  //         peerConnectionRef.current?.addTrack(track, screenStream);
+  //       });
 
-        screenStreamRef.current = screenStream;
+  //       screenStreamRef.current = screenStream;
 
-        setIsScreenSharing(true);
+  //       setIsScreenSharing(true);
 
-        attachStreamWithDelay(screenVideoRef, screenStream);
+  //       attachStreamWithDelay(screenVideoRef, screenStream);
 
-        const offer = await peerConnectionRef.current.createOffer();
-        await peerConnectionRef.current.setLocalDescription(offer);
+  //       const offer = await peerConnectionRef.current.createOffer();
+  //       await peerConnectionRef.current.setLocalDescription(offer);
 
-        dispatch(
-          sendWebRTCOffer({
-            offer,
-            callId: callInfo.callId,
-            sender:
-              socket.id === callInfo.caller.socketId
-                ? callInfo.caller
-                : callInfo.receiver,
-            receiver: getTargetUser(),
-          })
-        );
-      } catch (err) {
-        console.error("Screen share error:", err);
-      }
-    } else {
-      handleStopScreenShare();
-    }
+  //       dispatch(
+  //         sendWebRTCOffer({
+  //           offer,
+  //           callId: callInfo.callId,
+  //           sender:
+  //             socket.id === callInfo.caller.socketId
+  //               ? callInfo.caller
+  //               : callInfo.receiver,
+  //           receiver: getTargetUser(),
+  //         })
+  //       );
+  //     } catch (err) {
+  //       console.error("Screen share error:", err);
+  //     }
+  //   } else {
+  //     handleStopScreenShare();
+  //   }
+  // };
+
+  const handleScreenShare = () => {
+    toast("Feature Coming soon!");
   };
 
   const handleStopScreenShare = async () => {

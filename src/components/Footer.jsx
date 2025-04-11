@@ -1,5 +1,11 @@
 import React from "react";
-import { FaFacebook, FaInstagram, FaTwitter, FaLinkedin } from "react-icons/fa";
+import {
+  FaFacebook,
+  FaInstagram,
+  FaTwitter,
+  FaLinkedin,
+  FaGithub,
+} from "react-icons/fa";
 import ContentWrapper from "./ContentWrapper";
 
 const listStyle =
@@ -27,6 +33,15 @@ const Footer = () => {
         </div>
         <div className="flex items-center justify-center gap-[10px]">
           <span className={iconStyle}>
+            <a
+              href="https://github.com/rajankumar19983"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <FaGithub />
+            </a>
+          </span>
+          <span className={iconStyle}>
             <FaFacebook />
           </span>
           <span className={iconStyle}>
@@ -36,7 +51,13 @@ const Footer = () => {
             <FaTwitter />
           </span>
           <span className={iconStyle}>
-            <FaLinkedin />
+            <a
+              href="https://www.linkedin.com/in/rajanchoudhary247"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <FaLinkedin />
+            </a>
           </span>
         </div>
       </ContentWrapper>

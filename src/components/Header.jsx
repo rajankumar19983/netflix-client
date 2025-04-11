@@ -8,6 +8,7 @@ import { twMerge } from "tailwind-merge";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../store/user-slice";
 import NotificationBell from "./NotificationBell";
+import { confirm } from "./confirm.jsx";
 
 const Header = () => {
   const { isLoggedIn, user } = useSelector((state) => state.user);
@@ -78,6 +79,14 @@ const Header = () => {
       setTimeout(() => {
         setShowSearch(false);
       }, 1000);
+    }
+  };
+
+  const handleLogout = async () => {
+    setShouPopup(false);
+    const userConfirm = await confirm("Are you sure you want to logout?");
+    if (userConfirm) {
+      dispatch(logout());
     }
   };
 
@@ -159,7 +168,10 @@ const Header = () => {
                 onClick={() => setShouPopup(!showPopup)}
               />
               {showPopup && (
-                <div className="w-[150px] md:w-[200px] absolute right-0 top-12 mt-2 shadow-lg bg-red-500 rounded-md">
+                <div
+                  className="w-[150px] md:w-[200px] absolute right-0 top-12 mt-2 shadow-lg bg-red-500 rounded-md"
+                  onMouseLeave={() => setShouPopup(false)}
+                >
                   <ul className="flex flex-col p-1 gap-2 text-black font-bold text-[18px]">
                     <li
                       className="p-2 bg-gray-400 cursor-pointer"
@@ -172,10 +184,7 @@ const Header = () => {
                     </li>
                     <li
                       className=" p-2 bg-gray-400 cursor-pointer"
-                      onClick={() => {
-                        dispatch(logout());
-                        setShouPopup(false);
-                      }}
+                      onClick={handleLogout}
                     >
                       Logout
                     </li>

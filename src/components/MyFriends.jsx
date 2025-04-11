@@ -4,6 +4,7 @@ import { unfriend } from "../store/friend-slice";
 import axios from "../config/axios";
 import { FaCommentDots } from "react-icons/fa";
 import ChatBox from "./ChatBox";
+import { confirm } from "./confirm";
 
 const MyFriends = () => {
   const { user } = useSelector((state) => state.user);
@@ -32,11 +33,16 @@ const MyFriends = () => {
   }, [friends]);
 
   const handleUnfriend = async (id) => {
-    try {
-      await dispatch(unfriend({ id }));
-      setFriendsData((prev) => prev.filter((ele) => ele.userId !== id));
-    } catch (err) {
-      console.error("Failed to unfriend:", err);
+    const userConfirm = await confirm(
+      "Are you sure you want to unfriend this user?"
+    );
+    if (userConfirm) {
+      try {
+        await dispatch(unfriend({ id }));
+        setFriendsData((prev) => prev.filter((ele) => ele.userId !== id));
+      } catch (err) {
+        console.error("Failed to unfriend:", err);
+      }
     }
   };
 

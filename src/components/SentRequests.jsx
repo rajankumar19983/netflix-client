@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { revokeFriendRequest } from "../store/friend-slice";
 import axios from "../config/axios";
+import { confirm } from "./confirm.jsx";
 
 const SentRequests = () => {
   const { sentRequests } = useSelector((state) => state.friend);
@@ -28,11 +29,16 @@ const SentRequests = () => {
   }, [sentRequests]);
 
   const handleRevoke = async (id) => {
-    try {
-      await dispatch(revokeFriendRequest({ id }));
-      setSentData((prev) => prev.filter((ele) => ele.userId !== id));
-    } catch (err) {
-      console.error("Failed to revoke:", err);
+    const userConfirm = await confirm(
+      "Are you sure you want to revoke this friend request?"
+    );
+    if (userConfirm) {
+      try {
+        await dispatch(revokeFriendRequest({ id }));
+        setSentData((prev) => prev.filter((ele) => ele.userId !== id));
+      } catch (err) {
+        console.error("Failed to revoke:", err);
+      }
     }
   };
 
