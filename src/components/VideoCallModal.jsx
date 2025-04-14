@@ -8,6 +8,13 @@ import {
   callEndedExternally,
 } from "../store/call-Slice.js";
 import toast from "react-hot-toast";
+import {
+  BsFillMicFill,
+  BsFillMicMuteFill,
+  BsCameraVideoFill,
+  BsCameraVideoOffFill,
+} from "react-icons/bs";
+import { FcEndCall } from "react-icons/fc";
 
 const VideoCallModal = () => {
   const { callInfo } = useSelector((state) => state.call);
@@ -368,29 +375,40 @@ const VideoCallModal = () => {
               </div>
             </>
           ) : (
-            <>
+            <div className="flex flex-col md:flex-row">
               <video
                 ref={localVideoRef}
                 autoPlay
                 muted
-                className="w-1/2 h-full object-contain bg-black rounded"
+                className="w-full md:w-1/2 h-full object-contain bg-black rounded"
               />
               <video
                 ref={remoteVideoRef}
                 autoPlay
-                className="w-1/2 h-full object-contain bg-black rounded"
+                className="w-full md:w-1/2 h-full object-contain bg-black rounded"
               />
-            </>
+            </div>
           )}
         </div>
       </div>
 
-      <div className="z-[100] fixed opacity-10 hover:opacity-100 bottom-4 left-1/2 -translate-x-1/2 bg-neutral-800 bg-opacity-80 text-white rounded-xl px-6 py-3 flex gap-4">
-        <button onClick={handleToggleMic}>
-          {isMicOn ? "Mute Mic" : "Unmute Mic"}
+      <div className="z-[100] fixed opacity-50 hover:opacity-100 bottom-4 left-1/2 -translate-x-1/2 bg-neutral-800 bg-opacity-80 text-white rounded-xl px-6 py-3 flex gap-4">
+        <button
+          onClick={handleToggleMic}
+          className="flex items-center"
+        >
+          {isMicOn ? (
+            <BsFillMicMuteFill size={24} />
+          ) : (
+            <BsFillMicFill size={24} />
+          )}
         </button>
         <button onClick={handleToggleVideo}>
-          {isVideoOn ? "Turn Off Cam" : "Turn On Cam"}
+          {isVideoOn ? (
+            <BsCameraVideoOffFill size={24} />
+          ) : (
+            <BsCameraVideoFill size={24} />
+          )}
         </button>
         <button onClick={handleScreenShare}>
           {isScreenSharing ? "Stop Sharing" : "Share Screen"}
@@ -399,7 +417,7 @@ const VideoCallModal = () => {
           onClick={handleEndCall}
           className="text-red-500"
         >
-          End Call
+          <FcEndCall size={24} />
         </button>
       </div>
     </div>

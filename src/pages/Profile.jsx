@@ -47,7 +47,7 @@ const Profile = () => {
       <ContentWrapper>
         <div className="flex p-4 flex-col md:flex-row">
           {/* Sidebar */}
-          <div className="w-full md:w-1/4 h-screen bg-gray-100 p-4 rounded-lg md:rounded-r-none md:block overflow-y-scroll">
+          <div className="w-full md:w-1/4 h-screen bg-gray-100 p-1 md:p-4 rounded-lg md:rounded-r-none md:block overflow-y-scroll">
             <h2 className="text-xl font-semibold mb-4">Profile</h2>
             <ul className="hidden md:block">
               {sections.map((section) => (
