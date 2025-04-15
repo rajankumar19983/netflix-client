@@ -99,43 +99,42 @@ function App() {
   }, [user?._id]);
 
   useEffect(() => {
-    if (!isLoggedIn) {
+    const token = localStorage.getItem("token");
+    if (token) {
       dispatch(account());
     }
-  }, [dispatch, isLoggedIn]);
+  }, [dispatch]);
 
   useEffect(() => {
     dispatch(fetchApiUrls());
     dispatch(fetchGenres());
   }, [dispatch]);
 
-  const funcAuthCheck = () => {
-    return (
-      <div className="h-screen">
-        <div className="flex justify-center items-center bg-black h-full">
-          <LuLoader className="animate-spin text-red-600 size-10" />
-        </div>
-      </div>
-    );
-  };
+  // const funcAuthCheck = () => {
+  //   return (
+  //     <div className="h-screen">
+  //       <div className="flex justify-center items-center bg-black h-full">
+  //         <LuLoader className="animate-spin text-red-600 size-10" />
+  //       </div>
+  //     </div>
+  //   );
+  // };
 
-  useEffect(() => {
-    if (!authChecked) {
-      return funcAuthCheck;
-    }
-  }, [authChecked]);
+  // useEffect(() => {
+  //   if (!authChecked) {
+  //     return funcAuthCheck;
+  //   }
+  // }, [authChecked]);
 
-  if (localStorage.getItem("token") && isLoading && !isLoggedIn) {
+  if (!authChecked) {
     return (
-      <div className="h-screen">
-        <div className="flex justify-center items-center bg-black h-full">
-          <LuLoader className="animate-spin text-red-600 size-10" />
-          {/* <img
-            src="/Netflix.gif"
-            alt="Auth gif"
-            className="z-[100]"
-          /> */}
-        </div>
+      <div className="h-screen flex justify-center items-center bg-black">
+        {/* <LuLoader className="animate-spin text-red-600 size-10" /> */}
+        <img
+          src="/Netflix.gif"
+          alt="Auth gif"
+          className="z-[100]"
+        />
       </div>
     );
   }
