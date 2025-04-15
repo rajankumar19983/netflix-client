@@ -102,6 +102,8 @@ function App() {
     const token = localStorage.getItem("token");
     if (token) {
       dispatch(account());
+    } else {
+      dispatch({ type: "user/account/rejected", payload: null });
     }
   }, [dispatch]);
 
@@ -133,7 +135,7 @@ function App() {
         <img
           src="/Netflix.gif"
           alt="Auth gif"
-          className="z-[100]"
+          className="z-[100] h-5/6 mx-auto"
         />
       </div>
     );
